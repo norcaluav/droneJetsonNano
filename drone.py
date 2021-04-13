@@ -82,7 +82,7 @@ def show_camera():
     else:
         print("Unable to open camera")
 
-def take_photo():
+def test_photo():
     #TODO Take a photo every second for 5 seconds
 
     # VideoCapture is a constructor that opens Camera I/O 
@@ -91,44 +91,37 @@ def take_photo():
     # know how to open/ process the file
     #  
     # a gstreamer pipeline is used to instantiate the VideoCapture object
+
+    print("Attempting to open Camera\n")
     cam = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
 
     # Checking camera as opened
     if  not cam.isOpened():
-        print("/n/n/nUnable to open Camera/n/n/n")
+        print("\n\n\nUnable to open Camera\n\n\n")
         return
+
+    print("Camera Opened")
     
     start_time = time.time()
     time_passed = 0
 
-    # Create Window
-    cv2.namedWindow("CSI Camera", cv2.WINDOW_AUTOSIZE)
+    for i in range(1,6):
 
-   
-    keyCode = 0
-    while cv2.getWindowProperty("CSI Camera", 0) >= 0:
+        time_passed = time.time() - start_time
 
-         for i in range(5):
-        
-            time_passed = time.time() - start_time
+        while time_passed < i:
+             time_passed = time.time() - start_time
+            
+             pass
 
-            while time_passed < i:
-                pass
+             print("Taking a photo\n")
+             # take photo
+             ret_val, img = cam.read()
+            
 
-            # take photo
-            ret_val, img = cam.read()
-            cv2.imshow("CSI Camera", img)
+             # save photo
+             cv2.imwrite('test'+str(i)+'.png', img)
 
-            # save photo
-            cv2.imwrite('test.png', img)
-
-
-
-
-        #exit once the esc key is pressed
-         keyCode = cv2.waitKey(5) & 0xff
-         if keyCode == 27:
-            break
 
     # clean up
     cam.release()
@@ -140,5 +133,5 @@ def take_photo():
 
 #If the file was run by itself, the function is run
 if __name__ == "__main__":
-    show_camera()
-    #take_photo()
+    #show_camera()
+    take_photo()
