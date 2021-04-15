@@ -83,7 +83,7 @@ def show_camera():
         print("Unable to open camera")
 
 def test_photo():
-    #TODO Take a photo every second for 5 seconds
+    # Take a photo every second for 5 seconds
 
     # VideoCapture is a constructor that opens Camera I/O 
     # The first parameter is the file to be opened, in this case a gstreamer_pipeline
@@ -134,4 +134,4 @@ def test_photo():
 #If the file was run by itself, the function is run
 if __name__ == "__main__":
     #show_camera()
-    take_photo()
+    test_photo()
