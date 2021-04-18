@@ -15,6 +15,7 @@ from mavsdk import System
 from mavsdk.offboard import (OffboardError, PositionNedYaw)
 from mavsdk.telemetry import (PositionNed, PositionVelocityNed)
 
+
 class PositionConvert:
     """
     Class created as a container for these two functions    
@@ -27,13 +28,18 @@ class PositionConvert:
         return PositionNed(PositionNedYaw.north_m, PositionNedYaw.east_m, PositionNedYaw.down_m)
 
 def is_converge(PositionVelocityNed, PositionNed):
+    #TODO: Extract the position out of PositionVelocityNed as currently PositionVelocityNed is a container
+    # for a PositionNed object and a VelocityNed object
     difference_n = abs(PositionVelocityNed.north_m - PositionNed.north_m)
     difference_e = abs(PositionVelocityNed.east_m - PositionNed.east.m)
     difference_d = abs(PositionVelocityNed.down_m - PositionNed.down_m) 
+
+    print(difference_n, difference_e, difference_d)
+
     epsilon = 0.01
     if (difference_n < epsilon and difference_e < epsilon and difference_d < epsilon):
         return True
-    else 
+    else:
         return False
 
 
@@ -73,7 +79,8 @@ async def run():
 
     print("-- Checking if complete")
     async for position_velocity_ned in drone.telemetry.position_velocity_ned():
-     #  if 
+        while(not is_converge(position_velocity_ned, position_goal)):
+            print("-- not arrived")
   
 
 
