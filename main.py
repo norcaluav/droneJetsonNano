@@ -13,9 +13,9 @@ import asyncio
 
 from mavsdk import System
 from mavsdk.offboard import (OffboardError, PositionNedYaw)
-from mavsdk.telemetry import (PositionNed)
+from mavsdk.telemetry import (PositionNed, PositionVelocityNed)
 
-class Position_Convert:
+class PositionConvert:
     """
     Class created as a container for these two functions    
     """
@@ -26,7 +26,16 @@ class Position_Convert:
     def PositionNedYaw_to_PositionNed(PositionNedYaw):
         return PositionNed(PositionNedYaw.north_m, PositionNedYaw.east_m, PositionNedYaw.down_m)
 
-    
+def is_converge(PositionVelocityNed, PositionNed):
+    difference_n = abs(PositionVelocityNed.north_m - PositionNed.north_m)
+    difference_e = abs(PositionVelocityNed.east_m - PositionNed.east.m)
+    difference_d = abs(PositionVelocityNed.down_m - PositionNed.down_m) 
+    epsilon = 0.01
+    if (difference_n < epsilon and difference_e < epsilon and difference_d < epsilon):
+        return True
+    else 
+        return False
+
 
 
 
@@ -55,7 +64,7 @@ async def run():
     # Set the goal in PositionNedYaw form
     position_goal_yaw = PositionNedYaw(50.0, 50.0, -50.0, 0.0)
     # Convert to PositionNed
-    position_goal = Position_Convert.PositionNedYaw_to_PositionNed(position_goal_yaw)
+    position_goal = PositionConvert.PositionNedYaw_to_PositionNed(position_goal_yaw)
     
 
     print("-- Go 0m North, 0m East, -50m Down within local coordinate system")
