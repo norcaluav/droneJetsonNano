@@ -9,34 +9,37 @@ non-gps environment.
 """
 
 import asyncio
-
+import time
 
 from mavsdk import System
 from mavsdk.offboard import (OffboardError, PositionNedYaw)
 from mavsdk.telemetry import (PositionNed, PositionVelocityNed)
 
 
-class PositionConvert:
-    """
-    Class created as a container for these two functions    
-    """
 
-    def PositionNed_to_PositionNedYaw(PositionNed):
-        return PositionNedYaw(PositionNed.north_m, PositionNed.east_m, PositionNed.down_m, 0.0)
 
-    def PositionNedYaw_to_PositionNed(PositionNedYaw):
-        return PositionNed(PositionNedYaw.north_m, PositionNedYaw.east_m, PositionNedYaw.down_m)
+def PositionNed_to_PositionNedYaw(PositionNed):
+    return PositionNedYaw(PositionNed.north_m, PositionNed.east_m, PositionNed.down_m, 0.0)
+
+def PositionNedYaw_to_PositionNed(PositionNedYaw):
+    return PositionNed(PositionNedYaw.north_m, PositionNedYaw.east_m, PositionNedYaw.down_m)
 
 def is_converge(PositionVelocityNed, PositionNed):
     #TODO: Extract the position out of PositionVelocityNed as currently PositionVelocityNed is a container
     # for a PositionNed object and a VelocityNed object
-    difference_n = abs(PositionVelocityNed.north_m - PositionNed.north_m)
-    difference_e = abs(PositionVelocityNed.east_m - PositionNed.east.m)
-    difference_d = abs(PositionVelocityNed.down_m - PositionNed.down_m) 
+    position = PositionVelocityNed.position
 
+    difference_n = abs(position.north_m - PositionNed.north_m)
+    difference_e = abs(position.east_m - PositionNed.east_m)
+    difference_d = abs(position.down_m - PositionNed.down_m) 
+    print("-- Current position is: ")
+    print(position)
+    print("-- Difference is: ")
     print(difference_n, difference_e, difference_d)
 
-    epsilon = 0.01
+    epsilon = 1
+
+    time.sleep(2)
     if (difference_n < epsilon and difference_e < epsilon and difference_d < epsilon):
         return True
     else:
@@ -62,7 +65,7 @@ async def run():
     try:
         await drone.offboard.start()
     except OffboardError as error:
-        print(f"Starting offboard mode failed with error code: {error._result.result}")
+        print(f"Starting offboard mode failed with error code: {error._result .result}")
         print("-- Disarming")
         await drone.action.disarm()
         return
@@ -70,17 +73,19 @@ async def run():
     # Set the goal in PositionNedYaw form
     position_goal_yaw = PositionNedYaw(50.0, 50.0, -50.0, 0.0)
     # Convert to PositionNed
-    position_goal = PositionConvert.PositionNedYaw_to_PositionNed(position_goal_yaw)
+    position_goal = PositionNedYaw_to_PositionNed(position_goal_yaw)
     
 
-    print("-- Go 0m North, 0m East, -50m Down within local coordinate system")
+    print("-- Go 50m North, 50m East, -50m Down within local coordinate system")
     await drone.offboard.set_position_ned(position_goal_yaw)
-    await asyncio.sleep(30)
 
     print("-- Checking if complete")
     async for position_velocity_ned in drone.telemetry.position_velocity_ned():
-        while(not is_converge(position_velocity_ned, position_goal)):
-            print("-- not arrived")
+        if is_converge(position_velocity_ned, position_goal):
+            print("-- Arrived")
+        else: 
+            print("-- Not Arrived")
+        print("----------------------------------------------")
   
 
 
