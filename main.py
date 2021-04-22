@@ -63,7 +63,33 @@ async def coop_is_converged(position_goal, drone):
             await asyncio.sleep(1)
     
     
-        
+async def set_position_ned_local(position_delta_yaw, drone):
+
+    """
+    This function allows for setting of location with reference to the current position
+    """
+
+    async for position in drone.telemetry.position_velocity_ned():
+        current_position = position.position
+        break
+    
+    #Create composite position attributes based on current position + delta
+    new_north_m = current_position.north_m + position_delta_yaw.north_m
+    new_east_m  = current_position.east_m  + position_delta_yaw.east_m
+    new_down_m  = current_position.down_m  + position_delta_yaw.down_m
+
+    #Create PositionNedYaw object with new composite position 
+    position_goal_yaw = PositionNedYaw(new_north_m, new_east_m, new_down_m, 0)
+    
+    #setting the position set point
+    print(f"-- Go {position_delta_yaw.north_m} North, {position_delta_yaw.east_m} East, {position_delta_yaw.down_m} Down")
+    await drone.offboard.set_position_ned(position_goal_yaw)
+
+    # Convert to PositionNed 
+    position_goal = PositionNedYaw_to_PositionNed(position_goal_yaw)
+
+    print("-- Creating Task: Checking if complete")
+    asyncio.create_task(coop_is_converged(position_goal, drone)) 
         
 
 
@@ -98,17 +124,9 @@ async def run():
 
     test_position = 50.0
     # Set the goal in PositionNedYaw form
-    position_goal_yaw = PositionNedYaw(test_position, test_position, -50.0, 0.0)
-    # Convert to PositionNed
-    position_goal = PositionNedYaw_to_PositionNed(position_goal_yaw)
-    
+    position_delta_goal_yaw = PositionNedYaw(test_position, test_position, -50.0, 0.0)
 
-    print("-- Go 50m North, 50m East, -50m Down within local coordinate system")
-    await drone.offboard.set_position_ned(position_goal_yaw)
-
-    print("-- Creating Task: Checking if complete")
-    asyncio.create_task(coop_is_converged(position_goal, drone)) 
-    
+    await set_position_ned_local(position_delta_goal_yaw, drone)
 
     
 
